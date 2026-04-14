@@ -1,0 +1,372 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Analytics — VocalTask{% endblock %}
+
+{% block extra_css %}
+<style>
+.analytics-hero { margin-bottom: 2rem; }
+.analytics-hero h1 {
+  font-family: var(--font-display);
+  font-size: clamp(1.8rem, 3vw, 2.5rem);
+  font-weight: 800;
+  letter-spacing: -0.04em;
+}
+.kpi-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: 1rem;
+  margin-bottom: 2rem;
+}
+.kpi-card {
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 1.25rem;
+  position: relative;
+  overflow: hidden;
+}
+.kpi-card::after {
+  content: '';
+  position: absolute;
+  bottom: 0; left: 0; right: 0;
+  height: 3px;
+}
+.kpi-pending::after { background: var(--amber); }
+.kpi-completed::after { background: var(--green); }
+.kpi-delayed::after { background: var(--red); }
+.kpi-ontime::after { background: var(--accent); }
+.kpi-streak::after { background: var(--accent2); }
+.kpi-score::after { background: var(--green); }
+
+.kpi-value {
+  font-family: var(--font-display);
+  font-size: 2.2rem; font-weight: 800;
+  line-height: 1; margin-bottom: 0.3rem;
+}
+.kpi-label { font-size: 0.72rem; color: var(--text3); text-transform: uppercase; letter-spacing: 0.08em; }
+.kpi-sub { font-size: 0.75rem; color: var(--text3); margin-top: 0.5rem; }
+
+.charts-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1.5rem;
+  margin-bottom: 1.5rem;
+}
+@media (max-width: 768px) { .charts-grid { grid-template-columns: 1fr; } }
+
+.chart-card {
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 1.5rem;
+}
+.chart-title {
+  font-family: var(--font-display);
+  font-size: 0.85rem; font-weight: 700;
+  color: var(--text2); margin-bottom: 1.25rem;
+  text-transform: uppercase; letter-spacing: 0.06em;
+}
+.chart-container { position: relative; height: 200px; }
+.chart-full { grid-column: 1 / -1; }
+.chart-full .chart-container { height: 240px; }
+
+.insight-strip {
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 1.25rem 1.5rem;
+  display: flex; gap: 2rem; flex-wrap: wrap;
+  margin-bottom: 1.5rem;
+}
+.insight-item { flex: 1; min-width: 140px; }
+.insight-label { font-size: 0.72rem; color: var(--text3); text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 0.25rem; }
+.insight-value { font-family: var(--font-display); font-size: 1.4rem; font-weight: 700; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="analytics-hero">
+  <h1>Analytics</h1>
+  <p style="color:var(--text3);font-size:0.875rem;margin-top:0.25rem">Your productivity at a glance</p>
+</div>
+
+<!-- KPI Cards -->
+<div class="kpi-grid">
+  <div class="kpi-card kpi-pending">
+    <div class="kpi-value" style="color:var(--amber)">{{ pending }}</div>
+    <div class="kpi-label">Pending</div>
+    {% if overdue_count > 0 %}
+    <div class="kpi-sub" style="color:var(--red)">{{ overdue_count }} overdue</div>
+    {% endif %}
+  </div>
+  <div class="kpi-card kpi-completed">
+    <div class="kpi-value" style="color:var(--green)">{{ completed }}</div>
+    <div class="kpi-label">Completed</div>
+    <div class="kpi-sub">{{ on_time_count }} on time</div>
+  </div>
+  <div class="kpi-card kpi-delayed">
+    <div class="kpi-value" style="color:var(--red)">{{ delayed }}</div>
+    <div class="kpi-label">Delayed</div>
+  </div>
+  <div class="kpi-card kpi-ontime">
+    <div class="kpi-value" style="color:var(--accent2)">{{ on_time_count }}</div>
+    <div class="kpi-label">On time</div>
+    {% if completed > 0 %}
+    <div class="kpi-sub">{{ on_time_count|floatformat:0 }}/{{ completed }} tasks</div>
+    {% endif %}
+  </div>
+  <div class="kpi-card kpi-streak">
+    <div class="kpi-value" style="color:var(--accent2)">{{ streak }}</div>
+    <div class="kpi-label">Day streak</div>
+    <div class="kpi-sub">consecutive days</div>
+  </div>
+  <div class="kpi-card kpi-score">
+    <div class="kpi-value" style="color:var(--green)">{{ productivity_score }}%</div>
+    <div class="kpi-label">Weekly score</div>
+    <div class="kpi-sub">tasks done this week</div>
+  </div>
+</div>
+
+<!-- Insight Strip -->
+<div class="insight-strip">
+  <div class="insight-item">
+    <div class="insight-label">Total tasks</div>
+    <div class="insight-value" style="color:var(--text)">{{ total }}</div>
+  </div>
+  <div class="insight-item">
+    <div class="insight-label">Cancelled</div>
+    <div class="insight-value" style="color:var(--text3)">{{ cancelled }}</div>
+  </div>
+  <div class="insight-item">
+    <div class="insight-label">Late completions</div>
+    <div class="insight-value" style="color:var(--red)">{{ late_count }}</div>
+  </div>
+  <div class="insight-item">
+    <div class="insight-label">Completion rate</div>
+    <div class="insight-value" style="color:var(--green)">
+      {% if total > 0 %}{% widthratio completed total 100 %}%{% else %}—{% endif %}
+    </div>
+  </div>
+</div>
+
+<!-- Charts -->
+<div class="charts-grid">
+  <!-- Donut: status breakdown -->
+  <div class="chart-card">
+    <div class="chart-title">Task status breakdown</div>
+    <div class="chart-container">
+      <canvas id="statusChart"></canvas>
+    </div>
+  </div>
+
+  <!-- Bar: on time vs late -->
+  <div class="chart-card">
+    <div class="chart-title">Completed — on time vs late</div>
+    <div class="chart-container">
+      <canvas id="ontimeChart"></canvas>
+    </div>
+  </div>
+
+  <!-- Line: 30 day activity -->
+  <div class="chart-card chart-full">
+    <div class="chart-title">30-day activity</div>
+    <div class="chart-container">
+      <canvas id="activityChart"></canvas>
+    </div>
+  </div>
+
+  <!-- Bar: best day of week -->
+  <div class="chart-card">
+    <div class="chart-title">Most productive day</div>
+    <div class="chart-container">
+      <canvas id="bestDayChart"></canvas>
+    </div>
+  </div>
+
+  <!-- Gauge: productivity score -->
+  <div class="chart-card">
+    <div class="chart-title">Weekly productivity score</div>
+    <div class="chart-container">
+      <canvas id="scoreChart"></canvas>
+    </div>
+  </div>
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<script>
+const dailyData = {{ daily_data_json|safe }};
+const bestDayData = {{ best_day_json|safe }};
+const score = {{ productivity_score }};
+
+Chart.defaults.color = '#9090b0';
+Chart.defaults.borderColor = '#2a2a3a';
+Chart.defaults.font.family = "'DM Sans', sans-serif";
+Chart.defaults.font.size = 11;
+
+const tooltipDefaults = {
+  backgroundColor: '#1a1a24',
+  borderColor: '#3a3a4f',
+  borderWidth: 1,
+  titleColor: '#f0f0f8',
+  bodyColor: '#9090b0',
+  padding: 10,
+  cornerRadius: 8,
+};
+
+// 1. Status donut
+new Chart(document.getElementById('statusChart'), {
+  type: 'doughnut',
+  data: {
+    labels: ['Pending', 'Completed', 'Delayed', 'Cancelled'],
+    datasets: [{
+      data: [{{ pending }}, {{ completed }}, {{ delayed }}, {{ cancelled }}],
+      backgroundColor: ['#fbbf24', '#22d3a5', '#f87171', '#3a3a4f'],
+      borderWidth: 0,
+      hoverOffset: 6,
+    }]
+  },
+  options: {
+    responsive: true, maintainAspectRatio: false,
+    cutout: '70%',
+    plugins: {
+      legend: { position: 'bottom', labels: { padding: 16, usePointStyle: true, pointStyleWidth: 8 } },
+      tooltip: { ...tooltipDefaults }
+    }
+  }
+});
+
+// 2. On time vs late bar
+new Chart(document.getElementById('ontimeChart'), {
+  type: 'bar',
+  data: {
+    labels: ['On time', 'Late'],
+    datasets: [{
+      data: [{{ on_time_count }}, {{ late_count }}],
+      backgroundColor: ['rgba(34,211,165,0.7)', 'rgba(248,113,113,0.7)'],
+      borderRadius: 8,
+      borderSkipped: false,
+    }]
+  },
+  options: {
+    responsive: true, maintainAspectRatio: false,
+    plugins: { legend: { display: false }, tooltip: { ...tooltipDefaults } },
+    scales: {
+      x: { grid: { display: false } },
+      y: { beginAtZero: true, ticks: { precision: 0 } }
+    }
+  }
+});
+
+// 3. 30-day activity line
+new Chart(document.getElementById('activityChart'), {
+  type: 'line',
+  data: {
+    labels: dailyData.map(d => d.date),
+    datasets: [
+      {
+        label: 'Created',
+        data: dailyData.map(d => d.created),
+        borderColor: '#7c6dfa',
+        backgroundColor: 'rgba(124,109,250,0.08)',
+        fill: true, tension: 0.4, pointRadius: 2,
+      },
+      {
+        label: 'Completed',
+        data: dailyData.map(d => d.completed),
+        borderColor: '#22d3a5',
+        backgroundColor: 'rgba(34,211,165,0.05)',
+        fill: true, tension: 0.4, pointRadius: 2,
+      },
+      {
+        label: 'Delayed',
+        data: dailyData.map(d => d.delayed),
+        borderColor: '#f87171',
+        backgroundColor: 'rgba(248,113,113,0.05)',
+        fill: true, tension: 0.4, pointRadius: 2,
+      },
+    ]
+  },
+  options: {
+    responsive: true, maintainAspectRatio: false,
+    interaction: { mode: 'index', intersect: false },
+    plugins: {
+      legend: { position: 'top', labels: { usePointStyle: true, pointStyleWidth: 8, padding: 16 } },
+      tooltip: { ...tooltipDefaults }
+    },
+    scales: {
+      x: { grid: { display: false }, ticks: { maxTicksLimit: 10 } },
+      y: { beginAtZero: true, ticks: { precision: 0 } }
+    }
+  }
+});
+
+// 4. Best day bar
+new Chart(document.getElementById('bestDayChart'), {
+  type: 'bar',
+  data: {
+    labels: bestDayData.map(d => d.day),
+    datasets: [{
+      label: 'Completed',
+      data: bestDayData.map(d => d.count),
+      backgroundColor: 'rgba(124,109,250,0.7)',
+      borderRadius: 8,
+      borderSkipped: false,
+    }]
+  },
+  options: {
+    responsive: true, maintainAspectRatio: false,
+    plugins: { legend: { display: false }, tooltip: { ...tooltipDefaults } },
+    scales: {
+      x: { grid: { display: false } },
+      y: { beginAtZero: true, ticks: { precision: 0 } }
+    }
+  }
+});
+
+// 5. Score gauge (doughnut trick)
+new Chart(document.getElementById('scoreChart'), {
+  type: 'doughnut',
+  data: {
+    datasets: [{
+      data: [score, 100 - score],
+      backgroundColor: [
+        score >= 70 ? '#22d3a5' : score >= 40 ? '#fbbf24' : '#f87171',
+        '#1a1a24'
+      ],
+      borderWidth: 0,
+      circumference: 270,
+      rotation: 225,
+    }]
+  },
+  options: {
+    responsive: true, maintainAspectRatio: false,
+    cutout: '78%',
+    plugins: {
+      legend: { display: false },
+      tooltip: { enabled: false },
+    }
+  },
+  plugins: [{
+    id: 'gaugeText',
+    afterDraw(chart) {
+      const { ctx, chartArea: { top, bottom, left, right } } = chart;
+      const cx = (left + right) / 2;
+      const cy = (top + bottom) / 2 + 20;
+      ctx.save();
+      ctx.textAlign = 'center';
+      ctx.fillStyle = '#f0f0f8';
+      ctx.font = "700 2rem 'Syne', sans-serif";
+      ctx.fillText(score + '%', cx, cy);
+      ctx.fillStyle = '#5a5a7a';
+      ctx.font = "400 0.75rem 'DM Sans', sans-serif";
+      ctx.fillText('weekly score', cx, cy + 24);
+      ctx.restore();
+    }
+  }]
+});
+</script>
+{% endblock %}

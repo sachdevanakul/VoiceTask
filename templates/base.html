@@ -1,0 +1,44 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{% block title %}VocalTask{% endblock %}</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,300&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="{% static 'css/main.css' %}">
+  {% block extra_css %}{% endblock %}
+</head>
+<body>
+  {% if user.is_authenticated %}
+  <nav class="navbar">
+    <a href="{% url 'tasks:dashboard' %}" class="nav-logo">VocalTask</a>
+    <div class="nav-links">
+      <a href="{% url 'tasks:dashboard' %}" class="nav-link {% if request.resolver_match.url_name == 'dashboard' %}active{% endif %}">Home</a>
+      <a href="{% url 'tasks:task_list' %}" class="nav-link {% if request.resolver_match.url_name == 'task_list' %}active{% endif %}">Tasks</a>
+      <a href="{% url 'tasks:analytics' %}" class="nav-link {% if request.resolver_match.url_name == 'analytics' %}active{% endif %}">Analytics</a>
+    </div>
+    <div class="nav-right">
+      <span class="nav-user">{{ user.username }}</span>
+      <a href="{% url 'accounts:logout' %}" class="nav-logout">Sign out</a>
+    </div>
+  </nav>
+  {% endif %}
+
+  {% if messages %}
+  <div class="messages">
+    {% for message in messages %}
+    <div class="message message--{{ message.tags }}">{{ message }}</div>
+    {% endfor %}
+  </div>
+  {% endif %}
+
+  <main class="main-content">
+    {% block content %}{% endblock %}
+  </main>
+
+  <script src="{% static 'js/main.js' %}"></script>
+  {% block extra_js %}{% endblock %}
+</body>
+</html>

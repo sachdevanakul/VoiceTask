@@ -1,0 +1,130 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Dashboard — VocalTask{% endblock %}
+
+{% block content %}
+<div class="hero">
+  <p class="hero-label">Voice-first task management</p>
+  <h1 class="hero-title">What do you<br>need to do?</h1>
+  <p class="hero-subtitle">Just press the mic and speak naturally.</p>
+</div>
+
+<!-- Voice Recorder -->
+<div class="voice-card">
+  <p class="voice-hint">Try: <strong>"Remind me to submit the quarterly report by next Friday"</strong></p>
+
+  <div class="voice-controls">
+    <button class="mic-btn" id="mic-btn" aria-label="Start voice recording">
+      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M12 18.75a6 6 0 0 0 6-6v-1.5m-6 7.5a6 6 0 0 1-6-6v-1.5m6 7.5v3.75m-3.75 0h7.5M12 15.75a3 3 0 0 1-3-3V4.5a3 3 0 1 1 6 0v8.25a3 3 0 0 1-3 3Z"/>
+      </svg>
+    </button>
+
+    <div class="waveform" id="waveform">
+      {% for i in "123456789" %}<div class="waveform-bar"></div>{% endfor %}
+    </div>
+
+    <p class="voice-status" id="voice-status">Press the mic to start</p>
+  </div>
+
+  <div class="transcript-preview" id="transcript-preview">
+    <div class="transcript-label">I heard</div>
+    <div class="transcript-text" id="transcript-text"></div>
+  </div>
+
+  <div class="parsed-result" id="parsed-result">
+    <div class="parsed-header">
+      <span class="parsed-title-label">AI parsed this as</span>
+      <span class="confidence-badge" id="confidence-badge"></span>
+    </div>
+    <div class="parsed-fields">
+      <div class="parsed-field">
+        <label>Task title</label>
+        <input type="text" id="field-title" placeholder="Task title">
+      </div>
+      <div class="parsed-field">
+        <label>Description</label>
+        <textarea id="field-description" placeholder="Additional details (optional)"></textarea>
+      </div>
+      <div class="parsed-field">
+        <label>Due date & time</label>
+        <input type="datetime-local" id="field-due">
+      </div>
+    </div>
+    <div class="parsed-actions">
+      <button class="btn btn-primary" id="save-task-btn">Save task</button>
+      <button class="btn btn-ghost" id="discard-btn">Discard</button>
+    </div>
+  </div>
+</div>
+
+<!-- Stats -->
+<div class="stats-grid">
+  <div class="stat-card stat-pending">
+    <div class="stat-value" id="count-pending">{{ pending }}</div>
+    <div class="stat-label">Pending</div>
+  </div>
+  <div class="stat-card stat-completed">
+    <div class="stat-value" id="count-completed">{{ completed }}</div>
+    <div class="stat-label">Completed</div>
+  </div>
+  <div class="stat-card stat-delayed">
+    <div class="stat-value" id="count-delayed">{{ delayed }}</div>
+    <div class="stat-label">Delayed</div>
+  </div>
+  <div class="stat-card stat-streak">
+    <div class="stat-value">{{ streak }}</div>
+    <div class="stat-label">Day streak 🔥</div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-value" style="color:var(--accent2)">{{ productivity_score }}%</div>
+    <div class="stat-label">Weekly score</div>
+  </div>
+</div>
+
+<!-- Recent Tasks -->
+<div class="tasks-section">
+  <div class="section-header">
+    <h2 class="section-title">Recent tasks</h2>
+    <a href="{% url 'tasks:task_list' %}" class="btn btn-ghost btn-sm">View all</a>
+  </div>
+
+  <div class="task-list" id="task-list">
+    {% if tasks %}
+      {% for task in tasks %}
+      <div class="task-card status-{{ task.status }}" id="task-{{ task.id }}">
+        <div class="task-indicator"></div>
+        <div class="task-body">
+          <div class="task-title">{{ task.title }}</div>
+          <div class="task-meta">
+            {% if task.due_date %}
+            <span class="due {% if task.is_overdue %}overdue{% endif %}">
+              {{ task.due_date|date:"d M, g:i A" }}{% if task.is_overdue %} — overdue{% endif %}
+            </span>
+            {% else %}
+            <span class="due">No due date</span>
+            {% endif %}
+            <span class="status-badge badge-{{ task.status }}">{{ task.status }}</span>
+            {% if task.delay_count > 0 %}<span style="color:var(--text3);font-size:0.7rem"> delayed {{ task.delay_count }}x</span>{% endif %}
+          </div>
+        </div>
+        <div class="task-actions">
+          {% if task.status == 'pending' or task.status == 'delayed' %}
+          <button class="btn btn-success btn-sm" onclick="updateStatus({{ task.id }}, 'complete')">Done</button>
+          <button class="btn btn-ghost btn-sm" onclick="updateStatus({{ task.id }}, 'delay')">+1d</button>
+          <button class="btn btn-danger btn-sm" onclick="updateStatus({{ task.id }}, 'cancel')">Cancel</button>
+          {% endif %}
+        </div>
+      </div>
+      {% endfor %}
+    {% else %}
+      <div class="empty-state">
+        <div class="empty-icon">🎙️</div>
+        <div class="empty-title">No tasks yet</div>
+        <p class="empty-hint">Press the mic above and speak your first task.</p>
+      </div>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

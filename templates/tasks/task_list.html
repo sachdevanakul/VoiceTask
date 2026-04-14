@@ -1,0 +1,74 @@
+{% extends 'base.html' %}
+
+{% block title %}All Tasks — VocalTask{% endblock %}
+
+{% block content %}
+<div class="section-header" style="margin-bottom:1.5rem">
+  <h1 class="section-title" style="font-size:1.5rem">All Tasks</h1>
+  <a href="{% url 'tasks:dashboard' %}" class="btn btn-ghost btn-sm">+ New task</a>
+</div>
+
+<div class="filter-tabs" style="margin-bottom:1.5rem">
+  <a href="?status=all" class="filter-tab {% if status_filter == 'all' %}active{% endif %}">All</a>
+  <a href="?status=pending" class="filter-tab {% if status_filter == 'pending' %}active{% endif %}">Pending</a>
+  <a href="?status=completed" class="filter-tab {% if status_filter == 'completed' %}active{% endif %}">Completed</a>
+  <a href="?status=delayed" class="filter-tab {% if status_filter == 'delayed' %}active{% endif %}">Delayed</a>
+  <a href="?status=cancelled" class="filter-tab {% if status_filter == 'cancelled' %}active{% endif %}">Cancelled</a>
+</div>
+
+<div class="task-list" id="task-list">
+  {% if tasks %}
+    {% for task in tasks %}
+    <div class="task-card status-{{ task.status }}" id="task-{{ task.id }}">
+      <div class="task-indicator"></div>
+      <div class="task-body">
+        <div class="task-title">{{ task.title }}</div>
+        {% if task.description %}
+        <div class="task-meta" style="margin-bottom:0.2rem;color:var(--text2);font-size:0.8rem">{{ task.description|truncatechars:80 }}</div>
+        {% endif %}
+        <div class="task-meta">
+          {% if task.due_date %}
+          <span class="due {% if task.is_overdue %}overdue{% endif %}">
+            Due {{ task.due_date|date:"d M Y, g:i A" }}
+            {% if task.is_overdue %} — overdue{% endif %}
+          </span>
+          {% else %}
+          <span class="due">No due date</span>
+          {% endif %}
+          <span class="status-badge badge-{{ task.status }}">{{ task.status }}</span>
+          {% if task.delay_count > 0 %}
+          <span style="color:var(--text3);font-size:0.7rem;margin-left:0.5rem">delayed {{ task.delay_count }}x</span>
+          {% endif %}
+          {% if task.parser_confidence < 0.7 %}
+          <span style="color:var(--amber);font-size:0.7rem;margin-left:0.5rem">⚠ low confidence parse</span>
+          {% endif %}
+        </div>
+        <div class="task-meta" style="margin-top:0.2rem">
+          Created {{ task.created_at|date:"d M Y, g:i A" }}
+          {% if task.completed_at %} · Completed {{ task.completed_at|date:"d M Y" }}{% endif %}
+        </div>
+      </div>
+      <div class="task-actions">
+        {% if task.status == 'pending' or task.status == 'delayed' %}
+        <button class="btn btn-success btn-sm" onclick="updateStatus({{ task.id }}, 'complete')">Done</button>
+        <button class="btn btn-ghost btn-sm" onclick="updateStatus({{ task.id }}, 'delay')">+1 day</button>
+        <button class="btn btn-danger btn-sm" onclick="updateStatus({{ task.id }}, 'cancel')">Cancel</button>
+        {% endif %}
+      </div>
+    </div>
+    {% endfor %}
+  {% else %}
+    <div class="empty-state">
+      <div class="empty-icon">📭</div>
+      <div class="empty-title">No tasks here</div>
+      <p class="empty-hint">
+        {% if status_filter != 'all' %}
+          No {{ status_filter }} tasks found. <a href="?status=all" style="color:var(--accent2)">View all</a>
+        {% else %}
+          Go to the <a href="{% url 'tasks:dashboard' %}" style="color:var(--accent2)">dashboard</a> and speak your first task.
+        {% endif %}
+      </p>
+    </div>
+  {% endif %}
+</div>
+{% endblock %}
