@@ -98,7 +98,7 @@ Building a custom date/intent parser would reinvent the wheel poorly. The real e
 ### 1. Clone & install
 
 ```bash
-git clone https://github.com/YOUR_USERNAME/vocaltask.git
+git clone https://github.com/nakulsachdeva/VoiceTask.git
 cd vocaltask
 python -m venv venv
 source venv/bin/activate        # Windows: venv\Scripts\activate
