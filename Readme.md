@@ -39,7 +39,7 @@ A voice-first task management app where you speak naturally and AI figures out t
 
 | Layer | Choice | Why |
 |-------|--------|-----|
-| Backend | Django 5 + PostgreSQL | Nakul's strongest stack; battle-tested |
+| Backend | Django 5 + PostgreSQL |  strongest stack; battle-tested |
 | NLP | Gemini 1.5 Flash API | Best accuracy/cost ratio; free tier sufficient |
 | Voice capture | Web Speech API | Browser-native, no cost, no library |
 | Voice feedback | Web Speech Synthesis API | Browser-native, zero setup |
@@ -156,4 +156,4 @@ vocaltask/
 
 ---
 
-Built by Nakul Sachdeva
+Built by Nakul 
