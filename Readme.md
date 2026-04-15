@@ -1,68 +1,104 @@
 # VocalTask 🎙️
 
-A voice-first task management app where you speak naturally and AI figures out the rest.
+> *Speak naturally. AI does the rest.*
 
-> *"Remind me to submit the quarterly report by next Friday"* → Task created with title, description, and due date extracted automatically.
+A voice-first task management app where you describe tasks in plain English and AI extracts everything — title, description, and due date — automatically.
+
+**"Remind me to submit the quarterly report by next Friday"**
+→ Task created. Due date set. Done.
 
 ---
 
-## Features
+## 📸 Screenshots
+
+<img width="1338" height="521" alt="image" src="https://github.com/user-attachments/assets/999a1f7b-c695-4c4b-82cc-c9d63f84f301" />
+<img width="1322" height="524" alt="image" src="https://github.com/user-attachments/assets/53b29e9d-123d-455c-93fb-f4af5ea4b85f" />
+<img width="1349" height="539" alt="image" src="https://github.com/user-attachments/assets/d21ddd22-ebe6-460a-9a20-636e604e88a6" />
+
+---
+
+## ✨ Features
 
 ### Core
-- **Voice input** — Speak tasks naturally using your browser's mic (Web Speech API)
-- **AI parsing** — Gemini 1.5 Flash extracts title, description, and due date from natural language
-- **Ambiguity handling** — Confidence scoring flags uncertain parses; user can review before saving
-- **Task states** — Pending → Completed / Cancelled / Delayed (with delay counter)
-- **Authentication** — Register, login, logout with Django's auth system
+- **Voice input** — Speak tasks naturally via browser mic (Web Speech API — no library needed)
+- **AI-powered parsing** — Gemini 1.5 Flash extracts title, description, and due date from natural language
+- **Confirm before save** — Parsed results are editable before storing; low-confidence parses are flagged in amber
+- **Task lifecycle** — Pending → Completed / Cancelled / Delayed (with delay counter per task)
+- **Authentication** — Register, login, logout via Django's built-in auth system
 
-### Standout
-- **Voice feedback** — App speaks back *"Got it! Report due Friday"* after creating a task
-- **Waveform animation** — Live visual feedback while recording
-- **Push notifications** — Browser alerts for tasks due in 1 hour and overdue tasks
-- **Confetti** — Fires when you complete a task ✨
-- **Analytics dashboard** — 5 charts covering all required KPIs plus productivity score, streak, and best day of week
+### Intelligent Behaviour
+- **Voice feedback** — App speaks back *"Got it! Report due Friday"* after task creation (Web Speech Synthesis)
+- **Waveform animation** — Live visual indicator while recording
+- **Confetti on completion** — Because small wins deserve celebration ✨
+- **Delay ≠ Cancel** — Delayed tasks get their due date pushed and a delay counter incremented, preserving intent in analytics
 
-### Analytics KPIs
+### Analytics Dashboard
+
 | KPI | Why it matters |
-|-----|---------------|
+|-----|----------------|
 | Tasks completed on time | Core productivity signal |
-| Tasks currently pending | Workload awareness |
-| Tasks delayed | Habit pattern — chronic delayers vs occasional |
-| On time vs late ratio | Honest view of planning accuracy |
-| Day streak | Engagement and consistency |
-| Weekly productivity score | At-a-glance health metric |
-| Best day of week | Tells you when you're most effective |
+| Tasks pending | Workload awareness |
+| Tasks delayed | Chronic delayers vs occasional slip-ups |
+| On-time vs late ratio | Honest view of planning accuracy |
+| Weekly productivity score | Tasks completed / tasks created this week |
+| Day streak | Consistency and habit building |
+| Best day of week | When you're actually most effective |
 
 ---
 
-## Tech Stack
+## 🧠 How It Works
 
-| Layer | Choice | Why |
-|-------|--------|-----|
-| Backend | Django 5 + PostgreSQL |  strongest stack; battle-tested |
-| NLP | Gemini 1.5 Flash API | Best accuracy/cost ratio; free tier sufficient |
-| Voice capture | Web Speech API | Browser-native, no cost, no library |
-| Voice feedback | Web Speech Synthesis API | Browser-native, zero setup |
+```
+User speaks
+    ↓
+Browser → speech-to-text (Web Speech API)
+    ↓
+Text sent to Django backend
+    ↓
+Gemini 1.5 Flash parses into structured fields (title, description, due date)
+    ↓
+Confidence score evaluated → low confidence flagged for user review
+    ↓
+User confirms / edits parsed result
+    ↓
+Task saved to PostgreSQL
+    ↓
+Voice feedback + UI update
+```
+
+---
+
+## 🛠️ Tech Stack
+
+| Layer | Technology | Reason |
+|-------|------------|--------|
+| Backend | Django 5 | Battle-tested, batteries-included |
+| Database | PostgreSQL | Production-ready relational DB |
+| NLP | Gemini 1.5 Flash (Google AI Studio) | Best accuracy/cost ratio; free tier sufficient |
+| Voice Input | Web Speech API | Browser-native, zero cost, zero setup |
+| Voice Output | Web Speech Synthesis API | Browser-native TTS, no library needed |
 | Charts | Chart.js | Lightweight, beautiful defaults |
-| Deployment | Railway | Native Django + Postgres support |
-| Static files | WhiteNoise | Zero-config static serving |
+| Deployment | Railway | Native Django + PostgreSQL support |
+| Static Files | WhiteNoise | Zero-config static file serving |
 
-### Why Gemini over a custom parser?
-Building a custom NLP date parser would reinvent the wheel poorly. The engineering value here is in the **prompt design** and the **confidence-check layer** — if the model isn't certain, the app flags it and asks the user to confirm. That's the ambiguity-handling logic.
+### Why Gemini over a custom NLP parser?
+
+Building a custom date/intent parser would reinvent the wheel poorly. The real engineering here is the **prompt design** and the **confidence-check layer**: if the model isn't certain about a parse, the app flags it and asks the user to confirm rather than silently creating a wrong task.
 
 ---
 
-## Setup
+## ⚙️ Setup
 
 ### Prerequisites
+
 - Python 3.11+
 - PostgreSQL running locally
-- A free Gemini API key from [aistudio.google.com](https://aistudio.google.com)
+- Gemini API key from [aistudio.google.com](https://aistudio.google.com) (free tier works)
 
 ### 1. Clone & install
 
 ```bash
-git clone https://github.com/yourusername/vocaltask.git
+git clone https://github.com/YOUR_USERNAME/vocaltask.git
 cd vocaltask
 python -m venv venv
 source venv/bin/activate        # Windows: venv\Scripts\activate
@@ -76,26 +112,28 @@ cp .env.example .env
 ```
 
 Edit `.env`:
-```
-SECRET_KEY=<generate with: python -c "import secrets; print(secrets.token_urlsafe(50))">
+
+```env
+SECRET_KEY=<generate: python -c "import secrets; print(secrets.token_urlsafe(50))">
 DEBUG=True
+
 DB_NAME=vocaltask
 DB_USER=postgres
 DB_PASSWORD=your_postgres_password
+
 GEMINI_API_KEY=your_gemini_key_here
 ```
 
-### 3. Set up the database
+> ⚠️ Never commit `.env` to version control. It's already in `.gitignore`.
+
+### 3. Create the database & run migrations
 
 ```bash
-# Create the database in psql
 psql -U postgres -c "CREATE DATABASE vocaltask;"
-
-# Run migrations
 python manage.py migrate
 ```
 
-### 4. Run
+### 4. Start the development server
 
 ```bash
 python manage.py runserver
@@ -103,21 +141,10 @@ python manage.py runserver
 
 Open [http://localhost:8000](http://localhost:8000), register an account, and start speaking.
 
-> **Note:** Voice input requires Chrome or Edge (Web Speech API). Firefox has limited support.
+> **Note:** Voice input requires Chrome or Edge. Firefox has limited Web Speech API support.
 
----
 
-## Deployment (Railway)
-
-1. Push your repo to GitHub
-2. Go to [railway.app](https://railway.app) → New Project → Deploy from GitHub
-3. Add a PostgreSQL plugin
-4. Set environment variables in Railway dashboard (same as `.env` but `DEBUG=False`, `ALLOWED_HOSTS=yourdomain.railway.app`)
-5. Railway auto-runs `python manage.py migrate` via the `Procfile`
-
----
-
-## Project Structure
+## 📁 Project Structure
 
 ```
 vocaltask/
@@ -127,33 +154,68 @@ vocaltask/
 ├── tasks/              # Core app
 │   ├── models.py       # Task model with all states
 │   ├── views.py        # API + page views
-│   ├── parser.py       # Gemini NLP parser
+│   ├── parser.py       # Gemini NLP integration & confidence layer
 │   └── urls.py
-├── accounts/           # Auth app
-├── templates/          # HTML templates
+├── accounts/           # Auth (register, login, logout)
+├── templates/
 │   ├── base.html
 │   ├── tasks/
 │   └── accounts/
 ├── static/
 │   ├── css/main.css    # Full design system
-│   └── js/main.js      # Voice, notifications, confetti
+│   └── js/main.js      # Voice capture, notifications
 ├── requirements.txt
+├── manage.py
 ├── Procfile
-└── .env.example
+└── .env
 ```
 
 ---
 
-## Design Decisions
+## 🎨 Design Decisions
 
-**Voice-first UX** — The mic is the hero element, centered above the fold. Typing is available as a fallback but never the primary path.
+**Voice-first UX** — The mic is the hero element, centered above the fold. Typing is a fallback, never the primary path.
 
-**Confirm before save** — Parsed results are shown editably before creating the task. Low-confidence parses are flagged in amber. This prevents silent errors from bad transcriptions.
+**Human-in-the-loop validation** — AI output is never blindly trusted. Parsed results are shown editably before the task is created. Uncertain parses are highlighted so users catch errors before they matter.
 
-**Delay ≠ Cancel** — These are meaningfully different states. A delayed task gets its due date pushed and a delay counter incremented — so analytics can distinguish "I postponed this intentionally" from "I abandoned this."
+**Delay ≠ Cancel** — These are meaningfully different signals. Delaying pushes the due date and increments a delay counter, so analytics can distinguish intentional postponement from abandonment.
 
-**Analytics that actually help** — The best day of week chart tells you *when* you work best. The streak counter builds habit. The productivity score is honest — it's tasks completed / tasks created this week, not a vanity metric.
+**Analytics that actually help** — The best-day-of-week chart tells you *when* you work best. The streak counter reinforces habits. The productivity score is honest: tasks completed / tasks created this week — not a vanity metric.
 
 ---
 
-Built by Nakul 
+## ⚠️ Known Limitations
+
+- Voice input works best in Chromium-based browsers (Chrome, Edge)
+- Requires an internet connection for speech recognition and AI parsing
+- NLP accuracy depends on microphone quality and speech clarity
+- No mobile app — browser-only for now
+
+---
+
+## 🚧 Planned Improvements
+
+- [ ] Background task scheduling for reminders (Celery + Redis)
+- [ ] Mobile-responsive UI improvements
+- [ ] Offline fallback for text-based task entry
+- [ ] Smarter confidence calibration with user feedback loop
+- [ ] Recurring task support (*"every Monday morning"*)
+- [ ] Export tasks to CSV / calendar (`.ics`)
+- [ ] Dark mode
+
+---
+
+## 🤝 Contributing
+
+Pull requests are welcome. For major changes, please open an issue first to discuss what you'd like to change.
+
+1. Fork the repo
+2. Create a feature branch (`git checkout -b feature/your-feature`)
+3. Commit your changes (`git commit -m 'Add some feature'`)
+4. Push to the branch (`git push origin feature/your-feature`)
+5. Open a Pull Request
+
+
+
+
+Built by [Nakul Sachdeva](https://github.com/nakulsachdeva)
