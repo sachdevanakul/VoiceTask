@@ -123,11 +123,18 @@ function showParsedResult(data, transcript) {
   document.getElementById('field-title').value = data.title || '';
   document.getElementById('field-description').value = data.description || '';
 
-  if (data.due_date) {
-    const dt = new Date(data.due_date_iso || data.due_date);
+  // Fix: use due_date_iso for reliable timezone-aware conversion
+  const dueField = document.getElementById('field-due');
+  dueField.value = '';
+  if (data.due_date_iso) {
+    const dt = new Date(data.due_date_iso);
     if (!isNaN(dt)) {
-      document.getElementById('field-due').value = dt.toISOString().slice(0, 16);
+      const local = new Date(dt.getTime() - dt.getTimezoneOffset() * 60000);
+      dueField.value = local.toISOString().slice(0, 16);
     }
+  } else if (data.due_date && data.due_date !== 'null') {
+    // Fallback: Gemini returned 'YYYY-MM-DD HH:MM' directly
+    dueField.value = data.due_date.replace(' ', 'T').slice(0, 16);
   }
 
   const confidence = data.confidence || 0;
