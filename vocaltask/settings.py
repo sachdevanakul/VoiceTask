@@ -10,26 +10,29 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/5.0/ref/settings/
 """
 
+
+
 from pathlib import Path
 import os
 
-# Build paths inside the project like this: BASE_DIR / 'subdir'.
+# Base directory
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 
-# Quick-start development settings - unsuitable for production
-# See https://docs.djangoproject.com/en/5.0/howto/deployment/checklist/
+# ================================
+# SECURITY SETTINGS
+# ================================
 
-# SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-^l3iqv-+4w$=jcvs=rmlo)5^&oevqy#407l8m5=d76!1o8u*8t'
+SECRET_KEY = os.getenv('SECRET_KEY')
 
-# SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = os.getenv('DEBUG', 'False') == 'True'
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = os.getenv('ALLOWED_HOSTS', '').split(',')
 
 
-# Application definition
+# ================================
+# APPLICATIONS
+# ================================
 
 INSTALLED_APPS = [
     'django.contrib.admin',
@@ -41,7 +44,12 @@ INSTALLED_APPS = [
     'tasks',
     'accounts',
 ]
- 
+
+
+# ================================
+# MIDDLEWARE
+# ================================
+
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'whitenoise.middleware.WhiteNoiseMiddleware',
@@ -52,9 +60,14 @@ MIDDLEWARE = [
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
- 
+
+
+# ================================
+# URL / TEMPLATES
+# ================================
+
 ROOT_URLCONF = 'vocaltask.urls'
- 
+
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
@@ -70,19 +83,29 @@ TEMPLATES = [
         },
     },
 ]
- 
+
 WSGI_APPLICATION = 'vocaltask.wsgi.application'
- 
+
+
+# ================================
+# DATABASE (Railway PostgreSQL)
+# ================================
+
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'voice_task',           # Database name you created
-        'USER': 'postgres',          # Or 'edms_user' if you created it
-        'PASSWORD': 'Nakul@123', # Password you set for PostgreSQL
-        'HOST': 'localhost',         # Local machine
-        'PORT': '5432',              # Default PostgreSQL port
+        'NAME': os.getenv('DB_NAME'),
+        'USER': os.getenv('DB_USER'),
+        'PASSWORD': os.getenv('DB_PASSWORD'),
+        'HOST': os.getenv('DB_HOST'),
+        'PORT': os.getenv('DB_PORT'),
     }
 }
+
+
+# ================================
+# PASSWORD VALIDATION
+# ================================
 
 AUTH_PASSWORD_VALIDATORS = [
     {'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator'},
@@ -90,20 +113,47 @@ AUTH_PASSWORD_VALIDATORS = [
     {'NAME': 'django.contrib.auth.password_validation.CommonPasswordValidator'},
     {'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator'},
 ]
- 
+
+
+# ================================
+# INTERNATIONALIZATION
+# ================================
+
 LANGUAGE_CODE = 'en-us'
 TIME_ZONE = 'Asia/Kolkata'
 USE_I18N = True
 USE_TZ = True
- 
+
+
+# ================================
+# STATIC FILES (IMPORTANT FOR RAILWAY)
+# ================================
+
 STATIC_URL = '/static/'
 STATIC_ROOT = BASE_DIR / 'staticfiles'
 STATICFILES_DIRS = [BASE_DIR / 'static']
+
 STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
- 
+
+
+# ================================
+# DEFAULTS
+# ================================
+
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+
+# ================================
+# AUTH REDIRECTS
+# ================================
+
 LOGIN_URL = '/accounts/login/'
 LOGIN_REDIRECT_URL = '/tasks/'
 LOGOUT_REDIRECT_URL = '/accounts/login/'
- 
+
+
+# ================================
+# GEMINI API
+# ================================
+
 GEMINI_API_KEY = os.getenv('GEMINI_API_KEY', '')
