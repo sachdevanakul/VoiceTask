@@ -94,10 +94,10 @@ python -m venv venv
 source venv/bin/activate  # Windows: venv\Scripts\activate
 pip install -r requirements.txt
 
-2. Configure Environment
-Create a .env file in the root directory:
+### 2. Configure Environment
+Create a `.env` file in the root directory:
 
-Code snippet
+```env
 SECRET_KEY=your_secret_key
 DEBUG=True
 
@@ -106,17 +106,12 @@ DB_USER=postgres
 DB_PASSWORD=your_password
 
 GEMINI_API_KEY=your_api_key
-3. Database & Server
-Bash
 # Run migrations
 python manage.py migrate
 
 # Start server
 python manage.py runserver
-Visit: http://localhost:8000
 
-📁 Project Structure
-Plaintext
 vocaltask/
 ├── vocaltask/          # Core settings
 ├── tasks/              # Task management logic
@@ -126,23 +121,24 @@ vocaltask/
 ├── requirements.txt
 ├── manage.py
 └── .env
-⚠️ Known Limitations
-Optimized for Chrome and Edge.
 
-Requires internet for AI and speech recognition.
 
-No native mobile application (yet).
+## ⚠️ Known Limitations
+* **Browser Compatibility:** Optimized specifically for **Chrome** and **Edge** to ensure stable Web Speech API performance.
+* **Connectivity:** Requires a stable internet connection for real-time AI parsing and speech recognition.
+* **Platform:** Currently a web-only application; no native mobile app is available yet.
 
-🚧 Future Improvements
-Reminders: Integrated Celery + Redis notifications.
+---
 
-Responsive: Better mobile-first styling.
+## 🚧 Future Improvements
+* **Reminders:** Implementing background task notifications using **Celery** and **Redis**.
+* **Responsive Design:** Enhancing the UI for a more seamless mobile-first experience.
+* **Calendar Integrations:** Syncing tasks directly to **Google Calendar**.
+* **Themes:** Adding a native **Dark Mode** for better low-light usability.
 
-Integrations: Export to Google Calendar.
+---
 
-Themes: Dark mode support.
+## 👨‍💻 Author
+**Nakul Sachdeva** — [GitHub Profile](https://github.com/sachdevanakul)
 
-👨‍💻 Author
-Nakul Sachdeva GitHub
-
-⭐ If you like this project, give it a star on GitHub!
+⭐ **If you like this project, give it a star on GitHub — it helps!**
